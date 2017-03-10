@@ -1,7 +1,5 @@
-// require express and path
 var express = require("express");
 var path = require("path");
-// create the express app
 var app = express();
 // static content
 app.use(express.static(path.join(__dirname, "./static")));
@@ -11,14 +9,8 @@ app.set('view engine', 'ejs');
 // root route to render the index.ejs view
 app.get('/', function(req, res) {
  res.render("index");
-})
-// tell the express app to listen on port 8000
-// app.listen(8000, function() {
-//  console.log("listening on port 8000");
-// })
-// this selects our port and listens
-// note that we're now storing our app.listen within
-// a variable called server. this is important!!
+});
+
 var server = app.listen(8000, function() {
  console.log("listening on port 8000");
 });
@@ -31,4 +23,41 @@ io.sockets.on('connection', function (socket) {
   console.log("WE ARE USING SOCKETS!");
   console.log(socket.id);
   //all the socket code goes in here!
-})
+  // If you don't know where this code is supposed to go reread the above info
+  socket.on("button_clicked", function (data){
+      console.log('Someone clicked a button!  chatmessage: ' + data.chatmessage);
+      io.emit('server_response', data.chatmessage);
+  });
+
+
+
+
+
+
+
+
+
+});
+
+// //  this is just the configuration code that we've already used
+// io.sockets.on('connection', function (socket) {
+//     //  EMIT:
+//     socket.emit('my_emit_event');
+//     //  BROADCAST:
+//     socket.broadcast.emit("my_broadcast_event");
+//     //  FULL BROADCAST:
+//     io.emit("my_full_broadcast_event");
+// })
+
+//let io = require('socket.io').listen(server);
+
+// io.sockets.on('connection', function (socket) {
+//     console.log("Socket Running");
+//     // Shows the socket id
+//     console.log(socket.id);
+//     socket.on("form_submit", function (data){
+// 		// Shows posted data
+//         console.log('Survey submitted with this data => ' + data.form_data);
+//         socket.emit('return_form', {response: data.form_data});
+//     })
+// });

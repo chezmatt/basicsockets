@@ -1,18 +1,179 @@
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-<title></title>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script type ="text/javascript" src="/socket.io/socket.io.js"></script>
-    <script type ="text/javascript">
-        $(document).ready(function (){
-            // this triggers the connection event in our server!
-            var socket = io.connect();
-            // we'll write all the socket stuff after the above line!
-        })
-    </script>
+    <meta charset="utf-8">
+    <title>Survey Assignment I NodeJS / Express</title>
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta name="robots" content="index">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.css" crossorigin="anonymous">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+  <!-- LOAD CUSTOM CSS BELOW -->
+    <!-- <link rel="stylesheet" type="text/css" href="main.css" media="screen"> -->
+  <style>
+/*css here */
+body {
+  background: #e2e1e0;
+  /*text-align: center;*/
+}
+.card {
+  background: #fff;
+  border-radius: 5px;
+  padding: 2em;
+
+
+  margin: 1rem;
+  position: relative;
+
+}
+.card-2:hover {
+  box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+}
+
+.card-2 {
+  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+    width: 90px;
+      height: 20px;
+        display: inline-block;
+          padding: 0.5em;
+}
+
+.card-4 {
+  box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+}
+footer, footer a{
+    text-align: center;
+    color:darkgray;
+    /*padding-top:380px;*/
+    font-size: 1em;
+    z-index: -1;
+}
+#viewport {
+    height:300px;
+    overflow: scroll;
+    vertical-align: text-bottom;
+}
+/*fieldset {
+border-radius: 10px;
+border: 1px solid #888;
+padding: 20px;*/
+/*width: 200px;
+height: 150px; */
+}
+  </style>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script type ="text/javascript" src="/socket.io/socket.io.js"></script>
+  <script>
+//functions for clarity
+function createUser(username, callback) {
+  if (!username || username == '') {
+    username = prompt('Please enter your name');
+    console.info('user entered: ' + username);
+  } //else {
+  document.getElementById('usrcardp').innerHTML = username;
+  console.info('user defined as: ' + username);
+  if (callback) {callback();}
+  return username;
+}
+//
+
+//
+function sendUser(username, callback) {
+  if (!username || username == '') {
+    //createUser();
+    return false;
+  } else {
+    socket.emit('sendUser', {'username': username});
+    if (callback) {callback();}
+    return username;
+  }
+};
+//
+
+//onready do this JQ stuff...
+$(document).ready(function() {
+  var username = '';
+  // this triggers the connection event in our server!
+  var socket = io.connect();
+  // we'll write all the socket stuff after the above line!
+  username = createUser(username, function() { //see above
+    sendUser(username);
+    console.log('user sent!' + username);
+  });
+
+  // when we get the array back fron the server_response
+  socket.on('server_response', function(data) {
+      var msghtml = '<p class="msgtxt"><span class="msgun">' + username + ' says: </span>' + data + '</p>';
+      $('#viewport').hide().append(msghtml).fadeIn(200);
+      $("#viewport").animate({ scrollTop: $('#viewport').prop("scrollHeight")}, 1000);
+
+      console.log('The server says: ' + data);
+    //   var html = '<div class="card card-2"></div>';
+    //   $('#participants').hide().append(html).fadeIn();
+    });
+
+  //
+  $('#chatbtn').click(function() {
+      //get the input box value.
+      var msg = $('#chatinput').val();
+      // assemble a message object?
+      console.warn('button_clicked ' + msg);
+      socket.emit('button_clicked', {'chatmessage': msg});
+    });
+  //
+  // socket.on('server_response', function(data) {
+  //   console.log('The server says: ' + data.response);
+  // });
+
+  //
+  // $('#survey_form').submit(function(e) {
+  //              e.preventDefault();
+  //              socket.emit("posting_form", {
+  //                  name: $('#name').val(),
+  //                  location: $('#location').val(),
+  //                  language: $('#language').val(),
+  //                  comment: $('#comment').val()
+  //              });
+  //          });
+  //          //display the emit response of the server called "updated_message" and "random_number"
+  //          socket.on('updated_message', function (data){
+  //              $('#message').html("You emitted the following information to the server: " + JSON.stringify(data.response));
+  //          });
+}); // end JQuerey ready function.
+</script>
 </head>
 <body>
-    <button>I AM A BUTTON!</button>
-    <!-- web page goes here -->
+<!-- .container is main centered wrapper -->
+<div class="container">
+    <div class="row" id="participants">
+        <div id="usrcard"class="card card-2">
+
+<i class="fa fa-user" aria-hidden="true">&nbsp;<span id="usrcardp">Welcome!</span></i>
+        </div>
+    </div>
+    <div class="card card-4">
+        <div class="row" id="cardheader">
+            <span class="mesg">Chat messages will appear below.</span>
+            <hr>
+        </div>
+        <div class="row" id="viewport">
+            <!-- user messages here -->
+        </div>
+        <hr>
+        <div class="row" id="userinput">
+            <label for="chatinput">Chat here:</label>
+            <input type="text" id="chatinput" width="90">
+            <button class="button-primary" id="chatbtn">Button</button>
+        </div>
+
+    </div>
+    <div id="content" class="row">
+    </div>
+    <footer>
+        <a href="http://www.mlwilkinson.com/index.html" target="_blank">By: Matthew Wilkinson</a>
+    </footer>
+</div> <!-- //closes container -->
 </body>
 </html>

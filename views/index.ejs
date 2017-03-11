@@ -52,7 +52,7 @@ footer, footer a{
 }
 #viewport {
     height:300px;
-    overflow: scroll;
+    overflow: auto;
     vertical-align: text-bottom;
 }
 /*fieldset {
@@ -85,7 +85,7 @@ function sendUser(username, callback) {
     //createUser();
     return false;
   } else {
-    socket.emit('sendUser', {'username': username});
+    socket.emit('sendUser', userobj);
     if (callback) {callback();}
     return username;
   }
@@ -95,19 +95,31 @@ function sendUser(username, callback) {
 //onready do this JQ stuff...
 $(document).ready(function() {
   var username = '';
+  var userobj = {
+      'usernum': null,
+      'username': username,
+      'config': {},
+      'color': '',
+      'time': {},
+    };
+  var msgobj = {
+      'username': username,
+      'message': '',
+      'time': ''
+    };
   // this triggers the connection event in our server!
   var socket = io.connect();
   // we'll write all the socket stuff after the above line!
-  username = createUser(username, function() { //see above
+  username, userobj.username, msgobj.username = createUser(username, function() {
     sendUser(username);
     console.log('user sent!' + username);
   });
 
   // when we get the array back fron the server_response
   socket.on('server_response', function(data) {
-      var msghtml = '<p class="msgtxt"><span class="msgun">' + username + ' says: </span>' + data + '</p>';
+      var msghtml = '<p class="msgtxt"><span class="msgun">' + data.username + ' says: </span>' + data.message + '</p>';
       $('#viewport').hide().append(msghtml).fadeIn(200);
-      $("#viewport").animate({ scrollTop: $('#viewport').prop("scrollHeight")}, 1000);
+      $("#viewport").animate({scrollTop: $('#viewport').prop("scrollHeight")}, 500);
 
       console.log('The server says: ' + data);
     //   var html = '<div class="card card-2"></div>';
@@ -115,13 +127,25 @@ $(document).ready(function() {
     });
 
   //
-  $('#chatbtn').click(function() {
+
+  function sendMsg() {
       //get the input box value.
-      var msg = $('#chatinput').val();
+      msgobj.message = $('#chatinput').val();
       // assemble a message object?
-      console.warn('button_clicked ' + msg);
-      socket.emit('button_clicked', {'chatmessage': msg});
+      console.info(msgobj.username + ' said: ' + msgobj.message);
+      socket.emit('button_clicked', msgobj);
+      $('#chatinput').val('');
+    }
+  $('#chatbtn').click(function() {
+      sendMsg();
     });
+  $('#chatinput').keydown(function( event ) {
+  if ( event.which == 13 ) {
+    event.preventDefault();
+    sendMsg();
+  }
+    });
+
   //
   // socket.on('server_response', function(data) {
   //   console.log('The server says: ' + data.response);

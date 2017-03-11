@@ -1,35 +1,43 @@
 var express = require("express");
 var path = require("path");
 var app = express();
+
+var usrarray = [
+
+];
+
 // static content
 app.use(express.static(path.join(__dirname, "./static")));
 // setting up ejs and our views folder
 app.set('views', path.join(__dirname, './views'));
 app.set('view engine', 'ejs');
-// root route to render the index.ejs view
+// root route t saro render the index.ejs view
 app.get('/', function(req, res) {
- res.render("index");
+    res.render("index");
 });
 
 var server = app.listen(8000, function() {
- console.log("listening on port 8000");
+    console.log("listening on port 8000");
 });
 // this is a new line we're adding AFTER our server listener
 // take special note how we're passing the server
 // variable. unless we have the server variable, this line will not work!!
 var io = require('socket.io').listen(server);
 // Whenever a connection event happens (the connection event is built in) run the following code
-io.sockets.on('connection', function (socket) {
+io.sockets.on('connection', function(socket) {
   console.log("WE ARE USING SOCKETS!");
   console.log(socket.id);
   //all the socket code goes in here!
   // If you don't know where this code is supposed to go reread the above info
-  socket.on("button_clicked", function (data){
-      console.log('Someone clicked a button!  chatmessage: ' + data.chatmessage);
-      io.emit('server_response', data.chatmessage);
+  socket.on("button_clicked", function(data) {
+      console.log(data.username + ' clicked a button!  message: ' + data.message);
+      io.emit('server_response', data);
   });
 
-
+  socket.on("sendUser", function(data) {
+      console.log(data.username + ' joined: ' + data.message);
+      io.emit('server_response', data.message);
+  });
 
 
 
